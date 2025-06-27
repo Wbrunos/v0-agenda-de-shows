@@ -1,7 +1,7 @@
 "use client"
 
-import { EnhancedLoginForm } from "@/components/auth/enhanced-login-form"
-import { EnhancedDashboard } from "@/components/dashboard/enhanced-dashboard"
+import { LoginForm } from "@/components/auth/login-form"
+import { Dashboard } from "@/components/dashboard/dashboard"
 import { useAuth } from "@/hooks/use-auth"
 
 export default function Home() {
@@ -12,15 +12,15 @@ export default function Home() {
       <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          <p className="text-gray-400">Loading AGS System...</p>
+          <p className="text-gray-400">Carregando Sistema AGS...</p>
         </div>
       </div>
     )
   }
 
   if (!user) {
-    return <EnhancedLoginForm />
+    return <LoginForm />
   }
 
-  return <EnhancedDashboard />
+  return <Dashboard />
 }

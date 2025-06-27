@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { createContext, useContext, useEffect, useState } from "react"
 
 interface User {
@@ -38,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Mock authentication for demo
     const mockUser = {
       id: "1",
-      name: "John Doe",
+      name: "João Silva",
       email: email,
       role: "Master",
     }

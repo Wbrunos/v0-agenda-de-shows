@@ -3,48 +3,44 @@
 import { useState } from "react"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Header } from "@/components/layout/header"
+import { DashboardHome } from "@/components/dashboard/dashboard-home"
 import { CalendarView } from "@/components/calendar/calendar-view"
 import { ArtistManagement } from "@/components/artists/artist-management"
-import { ShowDetails } from "@/components/shows/show-details"
-import { TravelExpenses } from "@/components/expenses/travel-expenses"
-import { FinanceDashboard } from "@/components/finance/finance-dashboard"
 import { UserManagement } from "@/components/users/user-management"
 import { SystemSettings } from "@/components/settings/system-settings"
-import { DashboardHome } from "@/components/dashboard/dashboard-home"
+import { FinanceDashboard } from "@/components/finance/finance-dashboard"
+import { TravelExpenses } from "@/components/expenses/travel-expenses"
 
 export function Dashboard() {
-  const [activeView, setActiveView] = useState("dashboard")
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [activeView, setActiveView] = useState("home")
 
   const renderContent = () => {
     switch (activeView) {
-      case "dashboard":
+      case "home":
         return <DashboardHome />
       case "calendar":
         return <CalendarView />
       case "artists":
         return <ArtistManagement />
-      case "show-details":
-        return <ShowDetails />
-      case "expenses":
-        return <TravelExpenses />
-      case "finance":
-        return <FinanceDashboard />
       case "users":
         return <UserManagement />
       case "settings":
         return <SystemSettings />
+      case "finance":
+        return <FinanceDashboard />
+      case "expenses":
+        return <TravelExpenses />
       default:
         return <DashboardHome />
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar activeView={activeView} setActiveView={setActiveView} isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <div className="lg:pl-64">
-        <Header onMenuClick={() => setSidebarOpen(true)} />
-        <main className="p-4 lg:p-8">{renderContent()}</main>
+    <div className="min-h-screen bg-[#0f0f0f] flex">
+      <Sidebar activeView={activeView} setActiveView={setActiveView} />
+      <div className="flex-1 flex flex-col">
+        <Header />
+        <main className="flex-1 p-6">{renderContent()}</main>
       </div>
     </div>
   )
