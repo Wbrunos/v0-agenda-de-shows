@@ -1,13 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { MoreHorizontal, MapPin, Clock, DollarSign, Edit, Trash2, Eye, Music, FileText } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { ShowDetailsDialog } from "./show-details-dialog"
-import { EditShowDialog } from "./edit-show-dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Music, MapPin, Clock, DollarSign, Search, Filter, Edit, Trash2 } from "lucide-react"
 
 interface Show {
   id: number
@@ -21,18 +20,19 @@ interface Show {
   price: string
   capacity: number
   sold: number
-  observation?: string
 }
 
 interface ShowListProps {
   shows: Show[]
-  onUpdateShow: (show: Show) => void
+  onEditShow: (show: Show) => void
+  onDeleteShow: (showId: number) => void
+  onViewDetails: (show: Show) => void
 }
 
-export function ShowList({ shows, onUpdateShow }: ShowListProps) {
-  const [selectedShow, setSelectedShow] = useState<Show | null>(null)
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false)
-  const [isEditOpen, setIsEditOpen] = useState(false)
+export function ShowList({ shows, onEditShow, onDeleteShow, onViewDetails }: ShowListProps) {
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [sortBy, setSortBy] = useState("date")
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -60,106 +60,159 @@ export function ShowList({ shows, onUpdateShow }: ShowListProps) {
     }
   }
 
-  const handleViewDetails = (show: Show) => {
-    setSelectedShow(show)
-    setIsDetailsOpen(true)
-  }
+  const filteredShows = shows
+    .filter((show) => {
+      const matchesSearch =
+        show.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        show.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        show.venue.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        show.city.toLowerCase().includes(searchTerm.toLowerCase())
 
-  const handleEdit = (show: Show) => {
-    setSelectedShow(show)
-    setIsEditOpen(true)
-  }
+      const matchesStatus = statusFilter === "all" || show.status === statusFilter
 
-  const handleUpdateShow = (updatedShow: Show) => {
-    onUpdateShow(updatedShow)
-    setIsEditOpen(false)
-  }
+      return matchesSearch && matchesStatus
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "date":
+          return new Date(a.date).getTime() - new Date(b.date).getTime()
+        case "artist":
+          return a.artist.localeCompare(b.artist)
+        case "venue":
+          return a.venue.localeCompare(b.venue)
+        default:
+          return 0
+      }
+    })
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {shows.map((show) => (
-          <Card
-            key={show.id}
-            className="glass-effect border-slate-700 hover:bg-slate-700/30 transition-all hover:scale-[1.02]"
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg text-white flex items-center gap-2">
-                    <Music className="h-5 w-5 text-blue-400 animate-pulse-glow" />
-                    {show.title}
-                  </CardTitle>
-                  <CardDescription className="font-medium text-slate-300">{show.artist}</CardDescription>
+    <div className="space-y-6">
+      {/* Filters */}
+      <Card className="glass-effect border-slate-700">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Buscar shows..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                <SelectItem value="all">Todos os Status</SelectItem>
+                <SelectItem value="confirmed">Confirmado</SelectItem>
+                <SelectItem value="pending">Pendente</SelectItem>
+                <SelectItem value="cancelled">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-700 border-slate-600">
+                <SelectItem value="date">Data</SelectItem>
+                <SelectItem value="artist">Artista</SelectItem>
+                <SelectItem value="venue">Local</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="flex items-center text-slate-300">
+              <Filter className="h-4 w-4 mr-2" />
+              <span className="text-sm">{filteredShows.length} show(s)</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Shows List */}
+      <div className="grid gap-4">
+        {filteredShows.map((show) => (
+          <Card key={show.id} className="glass-effect border-slate-700 hover:bg-slate-700/50 transition-all">
+            <CardContent className="p-6">
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                        <Music className="h-5 w-5 text-blue-400" />
+                        {show.title}
+                      </h3>
+                      <p className="text-slate-300 font-medium">{show.artist}</p>
+                    </div>
+                    <Badge className={getStatusColor(show.status)} variant="secondary">
+                      {getStatusText(show.status)}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                    <div className="flex items-center text-slate-300">
+                      <Clock className="mr-2 h-4 w-4 text-blue-400" />
+                      {new Date(show.date).toLocaleDateString("pt-BR")} às {show.time}
+                    </div>
+                    <div className="flex items-center text-slate-300">
+                      <MapPin className="mr-2 h-4 w-4 text-red-400" />
+                      {show.venue}, {show.city}
+                    </div>
+                    <div className="flex items-center text-slate-300">
+                      <DollarSign className="mr-2 h-4 w-4 text-green-400" />
+                      {show.price}
+                    </div>
+                    <div className="flex items-center text-slate-300">
+                      <span className="mr-2">🎫</span>
+                      {show.sold}/{show.capacity} vendidos
+                    </div>
+                  </div>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-slate-700 border-slate-600">
-                    <DropdownMenuItem onClick={() => handleViewDetails(show)} className="text-white hover:bg-slate-600">
-                      <Eye className="mr-2 h-4 w-4" />
-                      Ver Detalhes
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleEdit(show)} className="text-white hover:bg-slate-600">
-                      <Edit className="mr-2 h-4 w-4" />
-                      Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-400 hover:bg-slate-600">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Excluir
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <Badge className={getStatusColor(show.status)} variant="secondary">
-                {getStatusText(show.status)}
-              </Badge>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center text-sm text-slate-300">
-                <Clock className="mr-2 h-4 w-4 text-green-400" />
-                {new Date(show.date).toLocaleDateString("pt-BR")} às {show.time}
-              </div>
-              <div className="flex items-center text-sm text-slate-300">
-                <MapPin className="mr-2 h-4 w-4 text-red-400" />
-                {show.venue}, {show.city}
-              </div>
-              <div className="flex items-center text-sm text-slate-300">
-                <DollarSign className="mr-2 h-4 w-4 text-yellow-400" />
-                {show.price}
-              </div>
-              {show.observation && (
-                <div className="flex items-start text-sm text-slate-300">
-                  <FileText className="mr-2 h-4 w-4 text-orange-400 mt-0.5" />
-                  <span className="text-xs line-clamp-2">{show.observation}</span>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onViewDetails(show)}
+                    className="bg-transparent border-slate-600 text-slate-300 hover:bg-slate-600"
+                  >
+                    Ver Detalhes
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEditShow(show)}
+                    className="bg-transparent border-slate-600 text-slate-300 hover:bg-slate-600"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onDeleteShow(show.id)}
+                    className="bg-transparent border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-              )}
-              <div className="text-xs text-slate-400 text-center pt-2">
-                Capacidade: {show.capacity.toLocaleString()} pessoas
               </div>
             </CardContent>
           </Card>
         ))}
-      </div>
 
-      {selectedShow && (
-        <>
-          <ShowDetailsDialog show={selectedShow} open={isDetailsOpen} onOpenChange={setIsDetailsOpen} />
-          <EditShowDialog
-            show={selectedShow}
-            open={isEditOpen}
-            onOpenChange={setIsEditOpen}
-            onUpdateShow={handleUpdateShow}
-          />
-        </>
-      )}
+        {filteredShows.length === 0 && (
+          <Card className="glass-effect border-slate-700">
+            <CardContent className="p-8 text-center">
+              <Music className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-white mb-2">Nenhum show encontrado</h3>
+              <p className="text-slate-400">Tente ajustar os filtros ou adicionar um novo show.</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   )
 }
