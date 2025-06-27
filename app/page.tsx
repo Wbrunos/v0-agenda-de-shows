@@ -1,19 +1,16 @@
 "use client"
 
+import { useAuth } from "@/hooks/use-auth"
 import { LoginForm } from "@/components/auth/login-form"
 import { Dashboard } from "@/components/dashboard/dashboard"
-import { useAuth } from "@/hooks/use-auth"
 
 export default function Home() {
-  const { user, loading } = useAuth()
+  const { user, isLoading } = useAuth()
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          <p className="text-gray-400">Carregando Sistema AGS...</p>
-        </div>
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-white">Carregando...</div>
       </div>
     )
   }

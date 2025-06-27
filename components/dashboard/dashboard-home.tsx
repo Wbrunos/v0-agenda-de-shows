@@ -1,8 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Calendar, Music, DollarSign, TrendingUp, Plus, MapPin } from "lucide-react"
+import { Calendar, Music, DollarSign, TrendingUp, Clock, MapPin } from "lucide-react"
 
 export function DashboardHome() {
   const stats = [
@@ -28,9 +27,9 @@ export function DashboardHome() {
       color: "text-green-500",
     },
     {
-      title: "Taxa de Ocupação",
-      value: "85%",
-      description: "Acima da média",
+      title: "Taxa de Crescimento",
+      value: "23%",
+      description: "Comparado ao ano passado",
       icon: TrendingUp,
       color: "text-orange-500",
     },
@@ -43,53 +42,53 @@ export function DashboardHome() {
       venue: "Teatro Municipal",
       date: "2024-01-15",
       time: "20:00",
+      city: "São Paulo",
       value: "R$ 5.000",
     },
     {
       id: 2,
       artist: "Maria Santos",
-      venue: "Casa de Shows XYZ",
+      venue: "Casa de Shows Rock",
       date: "2024-01-18",
       time: "21:30",
+      city: "Rio de Janeiro",
       value: "R$ 3.500",
     },
     {
       id: 3,
       artist: "Pedro Costa",
-      venue: "Clube da Música",
+      venue: "Auditório Central",
       date: "2024-01-20",
       time: "19:00",
+      city: "Belo Horizonte",
       value: "R$ 4.200",
     },
   ]
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="text-slate-400">Visão geral do seu sistema de agendamento</p>
-        </div>
-        <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Show
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+        <p className="text-slate-400">Visão geral do seu sistema de agendamento</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index} className="bg-slate-800 border-slate-700">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-200">{stat.title}</CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">{stat.value}</div>
-              <p className="text-xs text-slate-400">{stat.description}</p>
-            </CardContent>
-          </Card>
-        ))}
+        {stats.map((stat, index) => {
+          const Icon = stat.icon
+          return (
+            <Card key={index} className="bg-slate-800 border-slate-700">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-slate-300">{stat.title}</CardTitle>
+                <Icon className={`h-4 w-4 ${stat.color}`} />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-white">{stat.value}</div>
+                <p className="text-xs text-slate-400 mt-1">{stat.description}</p>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       {/* Upcoming Shows */}
@@ -102,23 +101,27 @@ export function DashboardHome() {
           <div className="space-y-4">
             {upcomingShows.map((show) => (
               <div key={show.id} className="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
-                    <Music className="h-4 w-4 text-white" />
+                <div className="flex items-center space-x-4">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
+                    <Music className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-white font-medium">{show.artist}</h3>
-                    <div className="flex items-center gap-2 text-slate-400 text-sm">
-                      <MapPin className="h-3 w-3" />
-                      {show.venue}
+                    <h3 className="font-semibold text-white">{show.artist}</h3>
+                    <p className="text-sm text-slate-400">{show.venue}</p>
+                    <div className="flex items-center space-x-4 mt-1">
+                      <div className="flex items-center text-xs text-slate-400">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {show.date} às {show.time}
+                      </div>
+                      <div className="flex items-center text-xs text-slate-400">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        {show.city}
+                      </div>
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-white font-medium">{show.value}</p>
-                  <p className="text-slate-400 text-sm">
-                    {show.date} às {show.time}
-                  </p>
+                  <div className="font-semibold text-green-400">{show.value}</div>
                 </div>
               </div>
             ))}

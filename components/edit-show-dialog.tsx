@@ -9,28 +9,24 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar, Clock, MapPin, Music, DollarSign, Users } from "lucide-react"
-
-interface Artist {
-  id: number
-  name: string
-  genre: string
-  color: string
-}
 
 interface Show {
   id: number
   title: string
   artist: string
+  artistId: number
   date: string
   time: string
   venue: string
   city: string
   status: string
-  price: string
-  capacity: number
-  sold: number
-  observation?: string
+  price?: string
+  description?: string
+}
+
+interface Artist {
+  id: number
+  name: string
 }
 
 interface EditShowDialogProps {
@@ -38,37 +34,33 @@ interface EditShowDialogProps {
   onOpenChange: (open: boolean) => void
   show: Show | null
   artists: Artist[]
-  onUpdateShow: (showData: Show) => void
+  onUpdateShow: (show: Show) => void
 }
 
 export function EditShowDialog({ open, onOpenChange, show, artists, onUpdateShow }: EditShowDialogProps) {
   const [formData, setFormData] = useState({
     title: "",
-    artist: "",
+    artistId: "",
     date: "",
     time: "",
     venue: "",
     city: "",
     price: "",
-    capacity: "",
-    sold: "",
     description: "",
-    status: "pending",
+    status: "pendente",
   })
 
   useEffect(() => {
     if (show) {
       setFormData({
         title: show.title,
-        artist: show.artist,
+        artistId: show.artistId.toString(),
         date: show.date,
         time: show.time,
         venue: show.venue,
         city: show.city,
-        price: show.price.replace("R$ ", ""),
-        capacity: show.capacity.toString(),
-        sold: show.sold.toString(),
-        description: show.observation || "",
+        price: show.price || "",
+        description: show.description || "",
         status: show.status,
       })
     }
@@ -76,235 +68,151 @@ export function EditShowDialog({ open, onOpenChange, show, artists, onUpdateShow
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!show) return
 
-    const updatedShow = {
+    const artist = artists.find((a) => a.id.toString() === formData.artistId)
+
+    onUpdateShow({
       ...show,
-      title: formData.title,
-      artist: formData.artist,
-      date: formData.date,
-      time: formData.time,
-      venue: formData.venue,
-      city: formData.city,
-      price: `R$ ${formData.price}`,
-      capacity: Number.parseInt(formData.capacity),
-      sold: Number.parseInt(formData.sold),
-      observation: formData.description,
-      status: formData.status,
-    }
+      ...formData,
+      artist: artist?.name || "",
+      artistId: Number.parseInt(formData.artistId),
+    })
 
-    onUpdateShow(updatedShow)
     onOpenChange(false)
-  }
-
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   if (!show) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] bg-slate-800 border-slate-700 text-white max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Music className="h-6 w-6 text-blue-400" />
-            Editar Show
-          </DialogTitle>
+          <DialogTitle>Editar Show</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="title" className="text-slate-200">
-                Título do Show *
-              </Label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="title">Título do Show</Label>
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => handleChange("title", e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white"
-                placeholder="Nome do evento"
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="bg-slate-700 border-slate-600"
                 required
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="artist" className="text-slate-200">
-                Artista *
-              </Label>
-              <Select value={formData.artist} onValueChange={(value) => handleChange("artist", value)}>
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+            <div>
+              <Label htmlFor="artist">Artista</Label>
+              <Select
+                value={formData.artistId}
+                onValueChange={(value) => setFormData({ ...formData, artistId: value })}
+              >
+                <SelectTrigger className="bg-slate-700 border-slate-600">
                   <SelectValue placeholder="Selecione um artista" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-700 border-slate-600">
                   {artists.map((artist) => (
-                    <SelectItem key={artist.id} value={artist.name} className="text-white hover:bg-slate-600">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: artist.color }}></div>
-                        <span>{artist.name}</span>
-                      </div>
+                    <SelectItem key={artist.id} value={artist.id.toString()}>
+                      {artist.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="date" className="text-slate-200 flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Data *
-              </Label>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="date">Data</Label>
               <Input
                 id="date"
                 type="date"
                 value={formData.date}
-                onChange={(e) => handleChange("date", e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white"
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                className="bg-slate-700 border-slate-600"
                 required
               />
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="time" className="text-slate-200 flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Horário *
-              </Label>
+            <div>
+              <Label htmlFor="time">Horário</Label>
               <Input
                 id="time"
                 type="time"
                 value={formData.time}
-                onChange={(e) => handleChange("time", e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white"
+                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                className="bg-slate-700 border-slate-600"
                 required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="venue" className="text-slate-200 flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Local *
-              </Label>
-              <Input
-                id="venue"
-                value={formData.venue}
-                onChange={(e) => handleChange("venue", e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white"
-                placeholder="Nome do local"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="city" className="text-slate-200">
-                Cidade *
-              </Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => handleChange("city", e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white"
-                placeholder="Cidade do evento"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="price" className="text-slate-200 flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Preço do Ingresso (R$)
-              </Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                value={formData.price}
-                onChange={(e) => handleChange("price", e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white"
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="capacity" className="text-slate-200 flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Capacidade
-              </Label>
-              <Input
-                id="capacity"
-                type="number"
-                value={formData.capacity}
-                onChange={(e) => handleChange("capacity", e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white"
-                placeholder="Número de lugares"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="sold" className="text-slate-200">
-                Ingressos Vendidos
-              </Label>
-              <Input
-                id="sold"
-                type="number"
-                value={formData.sold}
-                onChange={(e) => handleChange("sold", e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white"
-                placeholder="Vendidos"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status" className="text-slate-200">
-                Status
-              </Label>
-              <Select value={formData.status} onValueChange={(value) => handleChange("status", value)}>
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue placeholder="Status do show" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-700 border-slate-600">
-                  <SelectItem value="pending" className="text-white hover:bg-slate-600">
-                    Pendente
-                  </SelectItem>
-                  <SelectItem value="confirmed" className="text-white hover:bg-slate-600">
-                    Confirmado
-                  </SelectItem>
-                  <SelectItem value="cancelled" className="text-white hover:bg-slate-600">
-                    Cancelado
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="description" className="text-slate-200">
-                Observações
-              </Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => handleChange("description", e.target.value)}
-                className="bg-slate-700 border-slate-600 text-white"
-                placeholder="Informações adicionais sobre o show..."
-                rows={3}
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="bg-transparent border-slate-600 text-slate-300 hover:bg-slate-600"
-            >
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="venue">Local</Label>
+              <Input
+                id="venue"
+                value={formData.venue}
+                onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
+                className="bg-slate-700 border-slate-600"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="city">Cidade</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                className="bg-slate-700 border-slate-600"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="price">Preço</Label>
+              <Input
+                id="price"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="bg-slate-700 border-slate-600"
+                placeholder="R$ 100"
+              />
+            </div>
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+                <SelectTrigger className="bg-slate-700 border-slate-600">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-700 border-slate-600">
+                  <SelectItem value="pendente">Pendente</SelectItem>
+                  <SelectItem value="confirmado">Confirmado</SelectItem>
+                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="description">Descrição</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="bg-slate-700 border-slate-600"
+              rows={3}
+            />
+          </div>
+
+          <div className="flex justify-end space-x-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-            >
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
               Salvar Alterações
             </Button>
           </div>

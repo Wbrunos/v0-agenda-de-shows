@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 
 interface User {
   id: string
@@ -12,46 +11,48 @@ interface User {
 
 interface AuthContextType {
   user: User | null
-  loading: boolean
-  signIn: (email: string, password: string) => Promise<void>
-  signOut: () => void
+  isLoading: boolean
+  login: (email: string, password: string) => Promise<boolean>
+  logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check for existing session
-    const savedUser = localStorage.getItem("ags-user")
+    // Simular verificação de autenticação
+    const savedUser = localStorage.getItem("ags_user")
     if (savedUser) {
       setUser(JSON.parse(savedUser))
     }
-    setLoading(false)
+    setIsLoading(false)
   }, [])
 
-  const signIn = async (email: string, password: string) => {
-    // TODO: Implement Supabase authentication
-    // Mock authentication for demo
-    const mockUser = {
-      id: "1",
-      name: "João Silva",
-      email: email,
-      role: "Master",
+  const login = async (email: string, password: string): Promise<boolean> => {
+    // Simular login
+    if (email === "admin@ags.com" && password === "123456") {
+      const userData = {
+        id: "1",
+        name: "Administrador",
+        email: "admin@ags.com",
+        role: "Master",
+      }
+      setUser(userData)
+      localStorage.setItem("ags_user", JSON.stringify(userData))
+      return true
     }
-
-    setUser(mockUser)
-    localStorage.setItem("ags-user", JSON.stringify(mockUser))
+    return false
   }
 
-  const signOut = () => {
+  const logout = () => {
     setUser(null)
-    localStorage.removeItem("ags-user")
+    localStorage.removeItem("ags_user")
   }
 
-  return <AuthContext.Provider value={{ user, loading, signIn, signOut }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, isLoading, login, logout }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

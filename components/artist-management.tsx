@@ -5,256 +5,189 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Music, Plus, Search, Edit, Trash2, Users } from "lucide-react"
-import { AddArtistDialog } from "./add-artist-dialog"
+import { Search, Plus, Music, Phone, Mail, MapPin } from "lucide-react"
+import { AddArtistDialog } from "@/components/add-artist-dialog"
 
 interface Artist {
   id: number
   name: string
   genre: string
-  color: string
-  totalShows?: number
-  upcomingShows?: number
-  revenue?: number
+  phone: string
+  email: string
+  city: string
+  status: "active" | "inactive"
+  totalShows: number
+  totalEarnings: string
 }
 
 export function ArtistManagement() {
-  const [artists, setArtists] = useState<Artist[]>([
+  const [searchTerm, setSearchTerm] = useState("")
+  const [showAddDialog, setShowAddDialog] = useState(false)
+
+  const artists: Artist[] = [
     {
       id: 1,
-      name: "The Midnight",
-      genre: "Synthwave",
-      color: "#3B82F6",
-      totalShows: 12,
-      upcomingShows: 3,
-      revenue: 45000,
+      name: "João Silva",
+      genre: "Rock",
+      phone: "(11) 99999-9999",
+      email: "joao@email.com",
+      city: "São Paulo",
+      status: "active",
+      totalShows: 15,
+      totalEarnings: "R$ 45.000",
     },
     {
       id: 2,
-      name: "Synthwave Dreams",
-      genre: "Electronic",
-      color: "#8B5CF6",
-      totalShows: 8,
-      upcomingShows: 2,
-      revenue: 32000,
+      name: "Maria Santos",
+      genre: "MPB",
+      phone: "(21) 88888-8888",
+      email: "maria@email.com",
+      city: "Rio de Janeiro",
+      status: "active",
+      totalShows: 12,
+      totalEarnings: "R$ 38.500",
     },
     {
       id: 3,
-      name: "Neon Nights",
-      genre: "Retrowave",
-      color: "#EF4444",
-      totalShows: 15,
-      upcomingShows: 4,
-      revenue: 67000,
+      name: "Pedro Costa",
+      genre: "Jazz",
+      phone: "(31) 77777-7777",
+      email: "pedro@email.com",
+      city: "Belo Horizonte",
+      status: "active",
+      totalShows: 8,
+      totalEarnings: "R$ 22.400",
     },
     {
       id: 4,
-      name: "Electric Pulse",
-      genre: "EDM",
-      color: "#10B981",
-      totalShows: 6,
-      upcomingShows: 1,
-      revenue: 18000,
+      name: "Ana Oliveira",
+      genre: "Pop",
+      phone: "(51) 66666-6666",
+      email: "ana@email.com",
+      city: "Porto Alegre",
+      status: "inactive",
+      totalShows: 5,
+      totalEarnings: "R$ 15.200",
     },
-    {
-      id: 5,
-      name: "Retro Future",
-      genre: "Synthpop",
-      color: "#F59E0B",
-      totalShows: 10,
-      upcomingShows: 2,
-      revenue: 38000,
-    },
-  ])
-
-  const [searchTerm, setSearchTerm] = useState("")
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  ]
 
   const filteredArtists = artists.filter(
     (artist) =>
       artist.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      artist.genre.toLowerCase().includes(searchTerm.toLowerCase()),
+      artist.genre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      artist.city.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const handleAddArtist = (artistData: Omit<Artist, "id">) => {
-    const newArtist = {
-      id: Math.max(...artists.map((a) => a.id)) + 1,
-      ...artistData,
-      totalShows: 0,
-      upcomingShows: 0,
-      revenue: 0,
-    }
-    setArtists([...artists, newArtist])
+  const getStatusColor = (status: string) => {
+    return status === "active" ? "bg-green-500" : "bg-red-500"
   }
 
-  const handleDeleteArtist = (artistId: number) => {
-    setArtists(artists.filter((a) => a.id !== artistId))
+  const getStatusText = (status: string) => {
+    return status === "active" ? "Ativo" : "Inativo"
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Gerenciamento de Artistas
-          </h2>
-          <p className="text-gray-600">Gerencie artistas e suas informações</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Gerenciar Artistas</h1>
+          <p className="text-slate-400">Gerencie todos os artistas cadastrados</p>
         </div>
+        <Button
+          onClick={() => setShowAddDialog(true)}
+          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Artista
+        </Button>
+      </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Buscar artistas..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full sm:w-[300px]"
-            />
+      <Card className="bg-slate-800 border-slate-700">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-white">Artistas ({filteredArtists.length})</CardTitle>
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+              <Input
+                placeholder="Buscar artistas..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
           </div>
-
-          <Button
-            onClick={() => setIsAddDialogOpen(true)}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Adicionar Artista
-          </Button>
-        </div>
-      </div>
-
-      {/* Artists Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-600">Total de Artistas</p>
-                <p className="text-2xl font-bold text-blue-900">{artists.length}</p>
-              </div>
-              <Music className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-600">Shows Agendados</p>
-                <p className="text-2xl font-bold text-green-900">
-                  {artists.reduce((sum, artist) => sum + (artist.upcomingShows || 0), 0)}
-                </p>
-              </div>
-              <Users className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-600">Shows Realizados</p>
-                <p className="text-2xl font-bold text-purple-900">
-                  {artists.reduce((sum, artist) => sum + (artist.totalShows || 0), 0)}
-                </p>
-              </div>
-              <Music className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-yellow-600">Receita Total</p>
-                <p className="text-2xl font-bold text-yellow-900">
-                  R$ {(artists.reduce((sum, artist) => sum + (artist.revenue || 0), 0) / 1000).toFixed(0)}k
-                </p>
-              </div>
-              <span className="text-2xl">💰</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Artists Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredArtists.map((artist) => (
-          <Card key={artist.id} className="hover:shadow-lg transition-shadow border-gray-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
-                    style={{ backgroundColor: artist.color }}
-                  >
-                    {artist.name.charAt(0)}
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredArtists.map((artist) => (
+              <div
+                key={artist.id}
+                className="p-4 bg-slate-700 rounded-lg border border-slate-600 hover:bg-slate-600 transition-colors"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
+                      <Music className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">{artist.name}</h3>
+                      <p className="text-sm text-slate-400">{artist.genre}</p>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-lg">{artist.name}</CardTitle>
-                    <Badge variant="secondary" className="mt-1">
-                      {artist.genre}
-                    </Badge>
+                  <Badge className={`${getStatusColor(artist.status)} text-white`}>
+                    {getStatusText(artist.status)}
+                  </Badge>
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-sm text-slate-400">
+                    <Phone className="h-4 w-4 mr-2" />
+                    {artist.phone}
+                  </div>
+                  <div className="flex items-center text-sm text-slate-400">
+                    <Mail className="h-4 w-4 mr-2" />
+                    {artist.email}
+                  </div>
+                  <div className="flex items-center text-sm text-slate-400">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    {artist.city}
                   </div>
                 </div>
-                <div className="flex space-x-1">
-                  <Button variant="ghost" size="sm" className="text-gray-500 hover:text-blue-600">
-                    <Edit className="h-4 w-4" />
+
+                <div className="border-t border-slate-600 pt-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Shows:</span>
+                    <span className="text-white font-medium">{artist.totalShows}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="text-slate-400">Receita:</span>
+                    <span className="text-green-400 font-medium">{artist.totalEarnings}</span>
+                  </div>
+                </div>
+
+                <div className="flex space-x-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-600 bg-transparent"
+                  >
+                    Editar
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="text-gray-500 hover:text-red-600"
-                    onClick={() => handleDeleteArtist(artist.id)}
+                    className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-600 bg-transparent"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    Ver Shows
                   </Button>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-600">Shows Realizados</p>
-                    <p className="font-semibold">{artist.totalShows || 0}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Próximos Shows</p>
-                    <p className="font-semibold">{artist.upcomingShows || 0}</p>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-gray-600 text-sm">Receita Total</p>
-                  <p className="font-semibold text-lg text-green-600">
-                    R$ {((artist.revenue || 0) / 1000).toFixed(0)}k
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-      {filteredArtists.length === 0 && (
-        <Card className="border-dashed border-2 border-gray-300">
-          <CardContent className="p-8 text-center">
-            <Music className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum artista encontrado</h3>
-            <p className="text-gray-600 mb-4">
-              {searchTerm ? "Tente ajustar o termo de busca" : "Adicione seu primeiro artista para começar"}
-            </p>
-            <Button onClick={() => setIsAddDialogOpen(true)} variant="outline">
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Artista
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      <AddArtistDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} onAddArtist={handleAddArtist} />
+      <AddArtistDialog isOpen={showAddDialog} onClose={() => setShowAddDialog(false)} />
     </div>
   )
 }
