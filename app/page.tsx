@@ -11,6 +11,8 @@ import { ShowCalendar } from "@/components/show-calendar"
 import { ShowList } from "@/components/show-list"
 import { AddShowDialog } from "@/components/add-show-dialog"
 import { DayShowsDialog } from "@/components/day-shows-dialog"
+import { LoginForm } from "@/components/auth/login-form"
+import { useAuth } from "@/hooks/use-auth"
 
 // Dados de exemplo
 const mockShows = [
@@ -94,7 +96,7 @@ const mockArtists = [
   { id: 5, name: "Legião Urbana Tributo", genre: "Rock Nacional", country: "Brasil" },
 ]
 
-export default function Dashboard() {
+function DashboardComponent() {
   const [shows, setShows] = useState(mockShows)
   const [artists, setArtists] = useState(mockArtists)
   const [searchTerm, setSearchTerm] = useState("")
@@ -276,4 +278,22 @@ export default function Dashboard() {
       )}
     </div>
   )
+}
+
+export default function Home() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center gradient-bg">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <LoginForm />
+  }
+
+  return <DashboardComponent />
 }
